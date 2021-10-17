@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+
+set -e
+
+DATADIR=data
+REPODIR="${1}"
+
+if [ -z "${REPODIR}" ] || [ ! -d "${REPODIR}" ]; then
+	cat <<__EOF__
+usage: $(basename "${0}") [REPODIR]
+__EOF__
+	exit 0
+fi
+
+if [ ! -d "${DATADIR}" ]; then
+	mkdir -p "${DATADIR}"
+fi
+
+for X in $(find "${REPODIR}" -type d -name ".git" | sed "s,.git$,,"); do
+	repo=$(basename "${X}")
+
+	sql="${DATADIR}/${repo}.sql"
+	if [ -f "${sql}" ]; then
+		echo "${repo} already exported"
+		continue
+	else
+		askgit export "${sql}" -e commits -e \
+			"SELECT committer_when,hash,committer_name,committer_email,message FROM commits('${X}')" 2>/dev/null
+		rc=$?
+		if [ "${rc}" != 0 ]; then
+			echo "Failed to export ${repo}"
+			continue
+		fi
+
+		json="${DATADIR}/${repo}.json"
+		sqlite3 -json "${sql}" "SELECT * FROM commits" >"${json}"
+		echo "Exported ${repo}"
+	fi
+done
