@@ -79,6 +79,6 @@ func main() {
 	}
 	wg.Wait()
 	defer func() {
-		log.Printf("Imported %d repositories (%d commits) in %s\n", len(files), commitCount, time.Since(start))
+		log.Printf("Imported %d repositories (%d commits) in %s\n", len(files), commitCount, time.Since(start).Round(time.Millisecond))
 	}()
 }
