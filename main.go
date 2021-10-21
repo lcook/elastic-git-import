@@ -41,7 +41,7 @@ func main() {
 		elastic.SetHealthcheck(false),
 	)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	var (
 		wg          sync.WaitGroup
